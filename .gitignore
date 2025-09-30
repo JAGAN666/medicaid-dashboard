@@ -3,9 +3,15 @@ Data Preprocessing/*.csv
 Data Preprocessing/*.dta
 Data Preprocessing/*.xlsx
 Data Preprocessing/*.do
+Data Preprocessing/*_BACKUP.json
+Data Preprocessing/*_FAKE_*.json
 
 # Keep only the RUCC classification file
 !Data Preprocessing/county_rucc_2023.json
+
+# Exclude raw data files
+*.xlsx
+*.xls
 
 # macOS
 .DS_Store
