@@ -304,8 +304,8 @@ input:checked + .slider:before {
               <option value='2017'>2017</option>
               <option value='2018'>2018</option>
               <option value='2019'>2019</option>
-              <option value='2020'>2020</option>
-              <option value='2021' selected>2021</option>
+              <option value='2020' selected>2020</option>
+              <option value='2021'>2021</option>
             </select>
           </td>
         </tr>
@@ -549,7 +549,23 @@ input:checked + .slider:before {
         </tr>
       </table>
     </div>
-    <div id='RuralUrbanFilter' style='min-width:calc(100% - 2px);float:left;border:lightgray;border-style:solid;border-width:0.5px'>
+    <!-- Display Mode Toggle -->
+    <div id='DisplayModeToggle' style='min-width:calc(100% - 2px);float:left;border:lightgray;border-style:solid;border-width:0.5px;margin-top:10px'>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <tr style='background-color:#034B77;color:white;height:30px'>
+          <th><b>Display Mode</b></th>
+        </tr>
+        <tr style='background-color:#B9D9E9;height:35px'>
+          <td style='padding:10px'>
+            <input type='radio' name='displayMode' id='densityMode' value='density' checked>
+            <label for='densityMode'>Provider Density Only</label><br>
+            <input type='radio' name='displayMode' id='ruralUrbanMode' value='ruralUrban'>
+            <label for='ruralUrbanMode'>Show Rural/Urban Status</label>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div id='RuralUrbanFilter' style='min-width:calc(100% - 2px);float:left;border:lightgray;border-style:solid;border-width:0.5px;margin-top:10px'>
       <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
         <colgroup>
           <col span="1" style="width: 10%;">

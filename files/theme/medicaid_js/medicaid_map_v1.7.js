@@ -145,6 +145,9 @@ const fips_dict = {  '01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA',
 //Rural/Urban Classification Data
 let rucc_data = {};
 
+//Display Mode (density or ruralUrban)
+let displayMode = 'density';
+
 //Load Up The JSON Files
 Promise.all(
   [d3.json("./files/theme/medicaid_src/tl_2018_us_simplified.json"),
@@ -257,6 +260,30 @@ var mouseover = function(event, d, s) {
     };
   };
 
+  // Get rural/urban classification if available
+  let ruralUrbanInfo = "";
+  if (ftype === 'County' && d.properties.GEOID && rucc_data.county_classifications && rucc_data.county_classifications[d.properties.GEOID]) {
+    const classification = rucc_data.county_classifications[d.properties.GEOID];
+    let categoryName = "";
+    switch(classification.category) {
+      case 'metro':
+        categoryName = "Metro (Urban)";
+        break;
+      case 'nonmetro_adjacent':
+        categoryName = "Rural (Adjacent to Metro)";
+        break;
+      case 'nonmetro_nonadjacent':
+        categoryName = "Rural (Not Adjacent)";
+        break;
+      case 'frontier':
+        categoryName = "Frontier (Remote Rural)";
+        break;
+      default:
+        categoryName = classification.category;
+    }
+    ruralUrbanInfo = "<tr><td>Rural/Urban Status: </td><td>" + categoryName + " (RUCC " + classification.rucc + ")</td></tr>";
+  }
+
   /*Format HTML Table*/
   if (d.properties.Data[s_year]['dq_issue']!='1'){
   str='<table> <tr> <td> <b>'+name+"</b> </td> <td>Rank: "+dis_rank[rank].toString(10)+
@@ -264,6 +291,7 @@ var mouseover = function(event, d, s) {
       "<tr><td>"+ftype+" Medicaid Provider: </td><td>"+d.properties.supply_raw.toLocaleString("en-US")+"</td></tr>"+
       "<tr><td>% Provider Participating in Medicaid: </td><td>"+(Math.round(d.properties.pct_participating*10)/10).toString(10)+"%</td></tr>"+
       "<tr><td>"+ftype+" Medicaid Pop (est.): </td><td>"+d.properties.Data[s_year]['pop'].toLocaleString("en-US")+"</td></tr>"+
+      ruralUrbanInfo +
       "<tr><td><b>Provider Type</b></td><td><b>Count</b></td></tr>"
   }else{
     str='<table> <tr> <td> <b>'+name+"</b> </td> <td></td> </tr>"+
@@ -272,6 +300,7 @@ var mouseover = function(event, d, s) {
         "<tr><td>"+ftype+" Medicaid Provider: </td><td>"+d.properties.supply_raw.toLocaleString("en-US")+"</td></tr>"+
         "<tr><td>% Provider Participating: </td><td>"+(Math.round(d.properties.pct_participating*10)/10).toString(10)+"%</td></tr>"+
         "<tr><td>"+ftype+" Medicaid Pop (est.): </td><td>"+d.properties.Data[s_year]['pop'].toLocaleString("en-US")+"</td></tr>"+
+        ruralUrbanInfo +
         "<tr><td><b>Provider Type</b></td><td><b>Count</b></td></tr>"
   }
   let ordered_s_specs=ordered_specs.filter(value=>s_specs.includes(value))
@@ -328,6 +357,30 @@ var mousemove = function(event, d, s) {
       rank=d.properties.pct_rank;
     };
   };
+  // Get rural/urban classification if available
+  let ruralUrbanInfo = "";
+  if (ftype === 'County' && d.properties.GEOID && rucc_data.county_classifications && rucc_data.county_classifications[d.properties.GEOID]) {
+    const classification = rucc_data.county_classifications[d.properties.GEOID];
+    let categoryName = "";
+    switch(classification.category) {
+      case 'metro':
+        categoryName = "Metro (Urban)";
+        break;
+      case 'nonmetro_adjacent':
+        categoryName = "Rural (Adjacent to Metro)";
+        break;
+      case 'nonmetro_nonadjacent':
+        categoryName = "Rural (Not Adjacent)";
+        break;
+      case 'frontier':
+        categoryName = "Frontier (Remote Rural)";
+        break;
+      default:
+        categoryName = classification.category;
+    }
+    ruralUrbanInfo = "<tr><td>Rural/Urban Status: </td><td>" + categoryName + " (RUCC " + classification.rucc + ")</td></tr>";
+  }
+
   /*Format HTML Table*/
   if (d.properties.Data[s_year]['dq_issue']!='1'){
   str='<table> <tr> <td> <b>'+name+"</b> </td> <td>Rank: "+dis_rank[rank].toString(10)+
@@ -335,6 +388,7 @@ var mousemove = function(event, d, s) {
       "<tr><td>"+ftype+" Medicaid Provider: </td><td>"+d.properties.supply_raw.toLocaleString("en-US")+"</td></tr>"+
       "<tr><td>% Provider Participating in Medicaid: </td><td>"+(Math.round(d.properties.pct_participating*10)/10).toString(10)+"%</td></tr>"+
       "<tr><td>"+ftype+" Medicaid Pop (est.): </td><td>"+d.properties.Data[s_year]['pop'].toLocaleString("en-US")+"</td></tr>"+
+      ruralUrbanInfo +
       "<tr><td><b>Provider Type</b></td><td><b>Count</b></td></tr>"
   }else{
     str='<table> <tr> <td> <b>'+name+"</b> </td> <td></td> </tr>"+
@@ -343,6 +397,7 @@ var mousemove = function(event, d, s) {
         "<tr><td>"+ftype+" Medicaid Provider: </td><td>"+d.properties.supply_raw.toLocaleString("en-US")+"</td></tr>"+
         "<tr><td>% Provider Participating: </td><td>"+(Math.round(d.properties.pct_participating*10)/10).toString(10)+"%</td></tr>"+
         "<tr><td>"+ftype+" Medicaid Pop (est.): </td><td>"+d.properties.Data[s_year]['pop'].toLocaleString("en-US")+"</td></tr>"+
+        ruralUrbanInfo +
         "<tr><td><b>Provider Type</b></td><td><b>Count</b></td></tr>"
   }
  let ordered_s_specs=ordered_specs.filter(value=>s_specs.includes(value))
@@ -429,6 +484,11 @@ Tooltip
   d3.selectAll("input[name=pView]").on('change', function(event){change_map();});
   d3.selectAll("input[name=pRank]").on('change', function(event){update_map(false);});
   d3.selectAll("input[name=ruralUrban]").on('change', function(event){update_map();});
+  d3.selectAll("input[name=displayMode]").on('change', function(event){
+    displayMode = d3.select('input[name=displayMode]:checked').property('value');
+    update_map();
+    update_legend();
+  });
 //*Set Up Specialty Selectors
   specs.forEach((item, i) => {
     d3.selectAll('input[name="'+item+'"]').on('change', function(event){
@@ -505,6 +565,14 @@ function passesRuralUrbanFilter(fips) {
       return [null,null];
     }
 
+    // Check if selected year exists in data, fallback to 2020
+    if (!d['properties']['Data'].hasOwnProperty(s_year)) {
+      s_year = '2020';
+      if (!d['properties']['Data'].hasOwnProperty(s_year)) {
+        return [null, null];
+      }
+    }
+
     // Check rural/urban filter for counties
     if (d['properties'].hasOwnProperty('GEOID') && d['properties']['GEOID'].length === 5) {
       if (!passesRuralUrbanFilter(d['properties']['GEOID'])) {
@@ -579,6 +647,15 @@ function calc_quintiles(obj){
   let pct=[];
   let state_pct={};
   let s_year=document.getElementById('ddYear').value;
+
+  // Validate year exists, fallback to 2020 if needed
+  if (topojson.feature(us, us.objects[obj]).features.length > 0) {
+    let testFeature = topojson.feature(us, us.objects[obj]).features[0];
+    if (testFeature.properties.Data && !testFeature.properties.Data.hasOwnProperty(s_year)) {
+      s_year = '2020';
+    }
+  }
+
   let state_min={}
   topojson.feature(us, us.objects[obj]).features.forEach((item, i) => {
   if (obj=='states'){
@@ -1180,6 +1257,8 @@ function set_color(d, entity, legend=false){
   let type=d3.select('input[name="pRank"]:checked').node().value
   let measure = document.getElementById('ddMeasure');
   let s_year=document.getElementById('ddYear').value;
+
+
   if ((entity=='states' || (entity=='counties' & type=='national')) & measure.value == 'p2pratio'){
   	rank='supply_rank'
   } else if (entity=='counties' & type=='state'  & measure.value == 'p2pratio'){
@@ -1200,6 +1279,113 @@ function set_color(d, entity, legend=false){
   }else{
     rankval=d
   }
+
+  // Apply different color schemes based on rural/urban status with high contrast
+  if (displayMode === 'ruralUrban' && entity === 'counties') {
+    // Determine which classification to use
+    let classification = null;
+    if (rucc_data.county_classifications && rucc_data.county_classifications[d.properties.GEOID]) {
+      const rucc = rucc_data.county_classifications[d.properties.GEOID].rucc;
+
+      // Assign classification based on RUCC code
+      if (rucc >= 1 && rucc <= 3) {
+        classification = 'metro';
+      } else if (rucc === 9) {
+        classification = 'frontier';
+      } else if (rucc === 4 || rucc === 6 || rucc === 8) {
+        classification = 'rural_adjacent';
+      } else if (rucc === 5 || rucc === 7) {
+        classification = 'rural_remote';
+      }
+    }
+
+    // Apply high-contrast color schemes based on classification
+    if (classification === 'frontier') {
+      // Dark Red/Burgundy scale for frontier counties (most remote)
+      switch (rankval){
+        case 0:
+          return "#FFFFFF";
+        case 1:
+          return '#FFCDD2';  // Light red
+        case 2:
+          return '#EF9A9A';  // Lighter burgundy
+        case 3:
+          return '#E57373';  // Medium burgundy
+        case 4:
+          return '#EF5350';  // Darker burgundy
+        case 5:
+          return '#C62828';  // Deep burgundy
+        case 6:
+          return '#757575';  // Data quality (gray)
+        default:
+          return "black";
+      }
+    } else if (classification === 'rural_remote') {
+      // Teal/Cyan scale for remote rural (not adjacent)
+      switch (rankval){
+        case 0:
+          return "#FFFFFF";
+        case 1:
+          return '#B2DFDB';  // Light teal
+        case 2:
+          return '#80CBC4';  // Light-medium teal
+        case 3:
+          return '#4DB6AC';  // Medium teal
+        case 4:
+          return '#26A69A';  // Darker teal
+        case 5:
+          return '#00695C';  // Deep teal
+        case 6:
+          return '#757575';  // Data quality (gray)
+        default:
+          return "black";
+      }
+    } else if (classification === 'rural_adjacent') {
+      // Orange/Gold scale for rural adjacent to metro
+      switch (rankval){
+        case 0:
+          return "#FFFFFF";
+        case 1:
+          return '#FFE0B2';  // Light orange
+        case 2:
+          return '#FFCC80';  // Light gold
+        case 3:
+          return '#FFB74D';  // Medium orange
+        case 4:
+          return '#FF9800';  // Bright orange
+        case 5:
+          return '#E65100';  // Deep orange
+        case 6:
+          return '#757575';  // Data quality (gray)
+        default:
+          return "black";
+      }
+    } else if (classification === 'metro') {
+      // Purple/Magenta scale for urban/metro areas
+      switch (rankval){
+        case 0:
+          return "#FFFFFF";
+        case 1:
+          return '#E1BEE7';  // Light purple
+        case 2:
+          return '#CE93D8';  // Light magenta
+        case 3:
+          return '#BA68C8';  // Medium purple
+        case 4:
+          return '#9C27B0';  // Bright magenta
+        case 5:
+          return '#6A1B9A';  // Deep purple
+        case 6:
+          return '#757575';  // Data quality (gray)
+        default:
+          return "black";
+      }
+    }
+    // If no classification found, return light gray
+    return '#F5F5F5';
+  }
+
+  // Default blue scale (for urban/metro or when not in rural/urban mode)
   switch (rankval){
     case 0:
       return "#FFFFFF";
@@ -1225,6 +1411,12 @@ function draw_legend(){
   let view=d3.select('input[name="pView"]:checked').node().value
   let rank=d3.select('input[name="pRank"]:checked').node().value
   let measure=d3.select('#ddMeasure').node().value
+
+  // Check if we're in rural/urban display mode
+  if (displayMode === 'ruralUrban') {
+    draw_rural_urban_legend();
+    return;
+  }
   if (view=='county' && rank=='state' && selected_state=='0'){
     legend
       .append("text")
@@ -1363,6 +1555,111 @@ function draw_legend(){
 };
 function remove_legend(){
   legend.selectAll("*").remove();
+};
+
+// Draw legend for rural/urban display mode
+function draw_rural_urban_legend(){
+  // Clear existing legend
+  remove_legend();
+
+  // Add title
+  legend
+    .append("text")
+      .attr("x", 10)
+      .attr('y', 13)
+      .text('Rural/Urban Classification (USDA RUCC Codes) - High Contrast View')
+      .style("fill", 'navy')
+      .attr("text-anchor", "left")
+      .style("alignment-baseline", "middle");
+
+  // Define categories with their new high-contrast colors
+  let categories = [
+    {name: 'Metro/Urban', color: '#9C27B0', description: 'Metropolitan areas (RUCC 1-3)'},
+    {name: 'Rural Adjacent', color: '#FF9800', description: 'Rural, adjacent to metro (RUCC 4,6,8)'},
+    {name: 'Rural Remote', color: '#26A69A', description: 'Rural, not adjacent (RUCC 5,7)'},
+    {name: 'Frontier', color: '#C62828', description: 'Most remote rural (RUCC 9)'},
+    {name: 'No Data', color: '#F5F5F5', description: 'Classification unavailable'},
+    {name: 'Data Issues', color: '#757575', description: 'Provider data quality issues'}
+  ];
+
+  let size = 20;
+
+  // Draw colored rectangles with gradients to show intensity
+  categories.forEach((cat, idx) => {
+    // Draw main color block
+    legend.append("rect")
+      .attr("x", 50 + 400*(idx%2))
+      .attr("y", 30 + Math.floor(idx/2)*(size+5))
+      .attr("width", size*2)
+      .attr("height", size)
+      .style("fill", cat.color)
+      .attr('stroke-width', 0.5)
+      .attr('stroke','#333');
+
+    // Add intensity gradient preview (except for No Data and Data Issues)
+    if (idx < 4) {
+      // Draw mini gradient boxes
+      let gradientColors = [];
+      switch(idx) {
+        case 0: // Metro
+          gradientColors = ['#E1BEE7', '#CE93D8', '#BA68C8', '#9C27B0', '#6A1B9A'];
+          break;
+        case 1: // Rural Adjacent
+          gradientColors = ['#FFE0B2', '#FFCC80', '#FFB74D', '#FF9800', '#E65100'];
+          break;
+        case 2: // Rural Remote
+          gradientColors = ['#B2DFDB', '#80CBC4', '#4DB6AC', '#26A69A', '#00695C'];
+          break;
+        case 3: // Frontier
+          gradientColors = ['#FFCDD2', '#EF9A9A', '#E57373', '#EF5350', '#C62828'];
+          break;
+      }
+
+      gradientColors.forEach((gcolor, gidx) => {
+        legend.append("rect")
+          .attr("x", 95 + 400*(idx%2) + gidx*8)
+          .attr("y", 30 + Math.floor(idx/2)*(size+5))
+          .attr("width", 7)
+          .attr("height", size)
+          .style("fill", gcolor)
+          .attr('stroke-width', 0.25)
+          .attr('stroke','#999');
+      });
+    }
+  });
+
+  // Add labels
+  legend.selectAll("mylabels")
+    .data(categories)
+    .enter()
+    .append("text")
+      .attr("x", function(d,i){
+        // Adjust position for gradient preview
+        return i < 4 ? 145 + 400*(i%2) : 95 + 400*(i%2);
+      })
+      .attr("y", function(d,i){ return 30 + Math.floor(i/2)*(size+8) + (size/2)})
+      .style("fill", 'navy')
+      .text(function(d){ return d.name + ": " + d.description})
+      .attr("text-anchor", "left")
+      .style("alignment-baseline", "middle")
+      .style("font-size", "12px");
+
+  // Add note about provider density
+  legend
+    .append("text")
+    .attr("x", 790)
+    .attr("y", 105)
+    .style("fill", 'navy')
+    .text("* Color intensity (light to dark) indicates provider density within each category")
+    .attr("text-anchor", "end")
+    .style("font-size",'10px')
+    .style("alignment-baseline", "middle");
+};
+
+// Update legend based on current settings
+function update_legend(){
+  remove_legend();
+  draw_legend();
 };
 
 /*
