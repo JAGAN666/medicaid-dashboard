@@ -1,0 +1,36 @@
+{
+  "metadata": {
+    "source": "USDA Economic Research Service",
+    "year": 2023,
+    "description": "Rural-Urban Continuum Codes (RUCC)",
+    "classification": {
+      "1": "Metro - Counties in metro areas of 1 million population or more",
+      "2": "Metro - Counties in metro areas of 250,000 to 1 million population",
+      "3": "Metro - Counties in metro areas of fewer than 250,000 population",
+      "4": "Nonmetro - Urban population of 20,000 or more, adjacent to a metro area",
+      "5": "Nonmetro - Urban population of 20,000 or more, not adjacent to a metro area",
+      "6": "Nonmetro - Urban population of 2,500 to 19,999, adjacent to a metro area",
+      "7": "Nonmetro - Urban population of 2,500 to 19,999, not adjacent to a metro area",
+      "8": "Nonmetro - Completely rural or less than 2,500 urban population, adjacent to a metro area",
+      "9": "Nonmetro - Completely rural or less than 2,500 urban population, not adjacent to a metro area"
+    },
+    "simplified_categories": {
+      "metro": [1, 2, 3],
+      "nonmetro_adjacent": [4, 6, 8],
+      "nonmetro_nonadjacent": [5, 7, 9],
+      "frontier": [8, 9]
+    }
+  },
+  "county_classifications": {
+    "01001": {"rucc": 3, "category": "metro"},
+    "01003": {"rucc": 1, "category": "metro"},
+    "01005": {"rucc": 6, "category": "nonmetro_adjacent"},
+    "01007": {"rucc": 7, "category": "nonmetro_nonadjacent"},
+    "01009": {"rucc": 6, "category": "nonmetro_adjacent"},
+    "01011": {"rucc": 7, "category": "nonmetro_nonadjacent"},
+    "01013": {"rucc": 6, "category": "nonmetro_adjacent"},
+    "01015": {"rucc": 6, "category": "nonmetro_adjacent"},
+    "01017": {"rucc": 6, "category": "nonmetro_adjacent"},
+    "01019": {"rucc": 7, "category": "nonmetro_nonadjacent"}
+  }
+}

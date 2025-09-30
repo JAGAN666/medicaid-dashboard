@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="shortcut icon" href="#" />
+  <link href='https://fonts.googleapis.com/css?family=Maven Pro' rel='stylesheet'>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <meta charset="utf-8">
+</head>
+<style>
+html * {
+  line-height: 1.15;
+  font-family: "Maven Pro", sans-serif;
+}
+.hidden{
+  display: none;
+}
+.center {
+  text-align: center;
+}
+#sidepanel{
+  position: relative;
+  max-width: 282px;
+  height: 727px;
+  left:0%;
+  overflow-y:auto;
+  display: inline-block;
+}
+#divider{
+  position:relative;
+  min-width: 0px;
+  max-width: 20px;
+  height:710px;
+  display: inline-block;
+}
+#content{
+  position: relative;
+  width: 800px;
+  height: 700px;
+  display: inline-block;
+}
+
+#page_body{
+  position:relative;
+  max-width:1100px;
+  width:100%;
+  margin: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  text-align:center;
+  justify-content: center;
+}
+
+.CellWithComment{
+  position:relative
+}
+
+.CellComment{
+  display:none;
+  position:absolute;
+  z-index:2000;
+  border:1px;
+  max-width:80%;
+  min-width:200px;
+  background-color:white;
+  border-style:solid;
+  border-width:1px;
+  border-color:navy;
+  padding:3px;
+  color:navy;
+  top:20px;
+  left:20px;
+  font-size:12px;
+  text-align: left;
+}
+
+.CellWithComment:hover span.CellComment{
+  display:inline-block;
+}
+
+.background {
+  fill: none;
+  pointer-events: all;
+}
+
+.feature {
+  cursor: pointer;
+  stroke: gray;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.feature.active {
+  fill:#FFD580 !important;
+}
+
+.feature.active2 {
+  fill:orange !important;
+}
+
+.mesh {
+  fill: none;
+  stroke: gray;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.collapsible {
+  background-color: #034B77;
+  color: white;
+  cursor: pointer;
+  padding: 5px 7px 5px 5px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+}
+
+.screenshot_button{
+  background-color: none;
+  color: none;
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  outline: none;
+  width:30px;
+  height:30px;
+  background: url("./files/theme/medicaid_src/Screenshot.svg") center no-repeat;
+}
+
+.active, .collapsible:hover {
+  background-color: #034B77;
+}
+
+.collapsible:after {
+  content: '\002B';
+  color: white;
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
+
+.active:after {
+  content: "\2212";
+}
+
+.content {
+  padding: 0 0 0 10px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  background-color: #f1f1f1;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;  /* 2 times the circle radius plus 4px for edges */
+  height: 22px; /* Circle diameter plus 4px for edges */
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;  /* Circle diameter */
+  width: 18px;   /* Circle diameter */
+  left: 2px;     /* Edge thickness */
+  bottom: 2px;   /* Edge thickness */
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px); /* Circle radius */
+}
+
+.slider.round {
+  border-radius: 22px; /* Same as switch height */
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+.non-selectable {
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+</style>
+
+<body>
+<!-- load the d3.js library -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://d3js.org/topojson.v3.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.1.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
+
+
+<div id='page_body'>
+<div id='current_view' style="min-width:min(1100px, 50%);display: flex; flex-wrap:wrap;">
+  <div id="sidepanel" style="border:lightgray;border-style: solid; border-width:0.5px">
+    <!--
+    Specialty Selector
+    -->
+    <div id='state_selector_div' style='min-width:calc(100% - 2px);max-width:280px; float:left; border: lightgray; border-style:solid;border-width:0.5px'>
+      <table cellspacing='0' cellpadding='0' width='100%'>
+        <colgroup>
+          <col span="1" style="width: 70%;">
+          <col span="1" style="width: 30%;">
+        </colgroup>
+        <th>
+          <tr style='background-color:#034B77;color:white;height:30px;text-align:center;font-weight:700;'>
+              <td id='state_selector'>State</td>
+              <td colspan="1">Year</td>
+          </tr>
+        </th>
+        <tr style='background-color:#B9D9E9;height:30px'>
+          <td colspan="1" id='t_ddState'>
+            <input id="ddState" list="State_List" style='width:calc(100% - 10px); text-align:left; height:80%' placeholder="Enter a state name here...">
+            <datalist id='State_List' style='overflow-y:auto;'>
+              <option value='Alabama'></option>
+              <option value='Alaska'></option>
+              <option value='Arizona'></option>
+              <option value='Arkansas'></option>
+              <option value='California'></option>
+              <option value='Colorado'></option>
+              <option value='Connecticut'></option>
+              <option value='Delaware'></option>
+              <option value='District of Columbia'></option>
+              <option value='Florida'></option>
+              <option value='Georgia'></option>
+              <option value='Hawaii'></option>
+              <option value='Idaho'></option>
+              <option value='Illinois'></option>
+              <option value='Indiana'></option>
+              <option value='Iowa'></option>
+              <option value='Kansas'></option>
+              <option value='Kentucky'></option>
+              <option value='Louisiana'></option>
+              <option value='Maine'></option>
+              <option value='Maryland'></option>
+              <option value='Massachusetts'></option>
+              <option value='Michigan'></option>
+              <option value='Minnesota'></option>
+              <option value='Mississippi'></option>
+              <option value='Missouri'></option>
+              <option value='Montana'></option>
+              <option value='Nebraska'></option>
+              <option value='Nevada'></option>
+              <option value='New Hampshire'></option>
+              <option value='New Jersey'></option>
+              <option value='New Mexico'></option>
+              <option value='New York'></option>
+              <option value='North Carolina'></option>
+              <option value='North Dakota'></option>
+              <option value='Ohio'></option>
+              <option value='Oklahoma'></option>
+              <option value='Oregon'></option>
+              <option value='Pennsylvania'></option>
+              <option value='Rhode Island'></option>
+              <option value='South Carolina'></option>
+              <option value='South Dakota'></option>
+              <option value='Tennessee'></option>
+              <option value='Texas'></option>
+              <option value='Utah'></option>
+              <option value='Vermont'></option>
+              <option value='Virginia'></option>
+              <option value='Washington'></option>
+              <option value='West Virginia'></option>
+              <option value='Wisconsin'></option>
+              <option value='Wyoming'></option>
+            </datalist>
+          </td>
+          <td style='text-align:center;'>
+            <select id='ddYear'>
+              <option value='2016'>2016</option>
+              <option value='2017'>2017</option>
+              <option value='2018'>2018</option>
+              <option value='2019'>2019</option>
+              <option value='2020'>2020</option>
+              <option value='2021' selected>2021</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div id='measure_selector' style='min-width:calc(100% - 2px); border:lightgray;border-style:solid;border-width:0.5px;float:left;'>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <colgroup>
+          <col span="1" style="width: 10%;">
+          <col span="1" style="width: 90%;">
+        </colgroup>
+        <thead>
+          <tr style='background-color:#034B77;color:white;height:30px'>
+              <td colspan="2" class="CellWithComment"><b>Select Measure</b>
+                <span class='CellComment'>
+                  Select measure:​<br>
+                  1. <b>Provider to population ratio</b> (default): number of Medicaid providers (numerator) per 100,000 Medicaid population. Select the provider beneficiary volumes to include below. <br>
+                  2. <b>% Participating</b>: number of Medicaid providers (numerator) over the total providers (denominator). Select the providers to include below.<br>
+                </span>
+              </td>
+          </tr>
+        </thead>
+        <tr style='background-color:#B9D9E9;height:30px'>
+          <td></td>
+          <td>
+            <select id='ddMeasure'>
+              <option value='p2pratio' selected>Provider to Population Ratio</option>
+              <option value='percent'>% Participating</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div id='specialty_selector' style='min-width:calc(100% - 2px);max-width:280px; float:left; border: lightgray; border-style:solid;border-width:0.5px'>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <colgroup>
+          <col span="1" style="width: 20px;">
+          <col span="1" style="max-width: 240px;">
+          <col span="1" style="width: 20px;">
+        </colgroup>
+        <tr style='background-color:#034B77;color:white;height:35px'>
+          <th colspan="3" style='text-align:left;'><b>Select a Provider Type<b></th>
+        </tr>
+        
+        <tr style='background-color:#B9D9E9;height:45px'>
+          <td><input type='checkbox' class='counspec' name='Family Medicine' checked></td>
+          <td>Family Medicine</td>
+          <td></td>
+        </tr>
+      </table>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <colgroup>
+          <col span="1" style="width: 20px;">
+          <col span="1" style="max-width: 240px;">
+          <col span="1" style="width: 20px;">
+        </colgroup>
+        <tr style='background-color:#75A6CC;height:45px'>
+          <td><input type='checkbox' name='Internal Medicine' checked></td>
+          <td>Internal Medicine</td>
+          <td></td>
+        </tr>
+      </table>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <colgroup>
+          <col span="1" style="width: 20px;">
+          <col span="1" style="max-width: 240px;">
+          <col span="1" style="width: 20px;">
+        </colgroup>
+        <tr style='background-color:#B9D9E9;height:45px'>
+          <td><input type='checkbox' name='Pediatrics' checked></td>
+          <td>Pediatrics</td>
+          <td></td>
+        </tr>
+      </table>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <colgroup>
+          <col span="1" style="width: 20px;">
+          <col span="1" style="max-width: 240px;">
+          <col span="1" style="width: 20px;">
+        </colgroup>
+        <tr style='background-color:#75A6CC;height:45px'>
+          <td><input type='checkbox' name='OBGYN' checked></td>
+          <td>OB/GYN</td>
+          <td></td>
+        </tr>
+      </table>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <colgroup>
+          <col span="1" style="width: 20px;">
+          <col span="1" style="max-width: 240px;">
+          <col span="1" style="width: 20px;">
+        </colgroup>
+        <tr style='background-color:#B9D9E9; height:45px;'>
+          <td><input type='checkbox' name='APRN' checked></td>
+          <td>Advanced Practice <br>Registered Nurse</td>
+          <td></td>
+        </tr>
+      </table>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <colgroup>
+          <col span="1" style="width: 20px;">
+          <col span="1" style="max-width: 240px;">
+          <col span="1" style="width: 20px;">
+        </colgroup>
+        <tr style='background-color:#75A6CC; height:45px;'>
+          <td><input type='checkbox' name='Physician Assistant' checked></td>
+          <td>Physician Assistant</td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+    <div id='volume_selector' style='min-width:calc(100% - 2px);max-width:280px; float:left; border: lightgray; border-style:solid;border-width:0.5px'>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="0">
+        <colgroup>
+          <col span="1" style="width: 25px;">
+          <col span="1" style="width: calc(100% - 25px);">
+        </colgroup>
+        <thead>
+          <tr style='background-color:#034B77;color:white;height:30px'>
+              <td colspan="2" class="CellWithComment"><b>Provider Beneficiary Volume</b>
+                <span class='CellComment'>
+                  The number of beneficiaries a provider saw in the year: ​<br>
+                    1. <b>150+</b>: 150 or more Medicaid beneficiaries.​<br>
+                    2. <b>11-149</b>: 11 to 149 Medicaid beneficiaries.​<br>
+                    3. <b>1-10</b>: 1 to 10 Medicaid beneficiaries.​<br>
+                    4. <b>0 but likely active</b>: No Medicaid beneficiaries, but provided service to Medicare beneficiaries or had recent changes in Medicare/NPPES registration.​<br>
+                    5. <b>0 and likely inactive</b>: No Medicaid beneficiaries and no Medicare beneficiaries, and had no recent changes in Medicare/NPPES registration. <br>
+                </span>
+              </td>
+          </tr>
+          <tr id='numerators_flag' style='background-color:#034B77;color:white;height:20px;display:none;'>
+              <th colspan="2"><b>Numerators</b></th>
+          </tr>
+        </thead>
+        <tr style='background-color:#B9D9E9; height:30px;'>
+          <td><input type='checkbox' name='Volume5' checked></td>
+          <td>150+</td>
+        </tr>
+        <tr style='background-color:#75A6CC; height:30px;'>
+          <td><input type='checkbox' name='Volume4' checked></td>
+          <td>11~149</td>
+        </tr>
+        <tr style='background-color:#B9D9E9; height:30px;'>
+          <td><input type='checkbox' name='Volume3' checked></td>
+          <td>1-10</td>
+        </tr>
+        <tr style='background-color:#75A6CC; height:30px;'>
+          <td><input type='checkbox' name='Volume2' ></td>
+          <td>0 but likely active</td>      </tr>
+        <tr style='background-color:#B9D9E9; height:30px;'>
+          <td><input type='checkbox' name='Volume1' ></td>
+          <td>0 and likely inactive</td>
+        </tr>
+      </table>
+    </div>
+    <div id='volume_denominator_selector' style='min-width:calc(100% - 2px);max-width:280px; float:left; border: lightgray; border-style:solid;border-width:0.5px;display:none;'>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="0">
+        <colgroup>
+          <col span="1" style="width: 25px;">
+          <col span="1" style="width: calc(100% - 25px);">
+        </colgroup>
+        <thead>
+          <tr style='background-color:#034B77;color:white;height:30px'>
+              <td colspan="2" class="CellWithComment"><b>Provider Beneficiary Volume</b>
+                <span class='CellComment'>
+                  Select providers to include in the denominator for <b>% Participating</b> in Medicaid. <br>
+                </span>
+              </td>
+          </tr>
+          <tr style='background-color:#034B77;color:white;height:20px;'>
+              <th colspan="2"><b>Denominators</b></th>
+          </tr>
+        </thead>
+        <tr style='background-color:#B9D9E9; height:30px;'>
+          <td><input type='checkbox' name='nVolume5' checked></td>
+          <td>150+</td>
+        </tr>
+        <tr style='background-color:#75A6CC; height:30px;'>
+          <td><input type='checkbox' name='nVolume4' checked></td>
+          <td>11~149</td>
+        </tr>
+        <tr style='background-color:#B9D9E9; height:30px;'>
+          <td><input type='checkbox' name='nVolume3' checked></td>
+          <td>1-10</td>
+        </tr>
+        <tr style='background-color:#75A6CC; height:30px;'>
+          <td><input type='checkbox' name='nVolume2' checked></td>
+          <td>0 but likely active</td>
+        </tr>
+        <tr style='background-color:#B9D9E9; height:30px;'>
+          <td><input type='checkbox' name='nVolume1' ></td>
+          <td>0 and likely inactive</td>
+        </tr>
+      </table>
+    </div>
+    <div id='CountyRank' style='min-width:calc(50% - 2px);float:left;border:lightgray;border-style:solid;border-width:0.5px' align='left'>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <colgroup>
+          <col span="1" style="width: 10%;">
+          <col span="1" style="width: 90%;">
+        </colgroup>
+        <tr style='background-color:#034B77;color:white;height:30px'>
+          <th colspan='2' class="CellWithComment"><b>County Rank</b>
+            <span class='CellComment'>
+              Select to rank counties nationally or within the state.​
+              <br>
+            </span>
+          </th>
+        </tr>
+        <tr style='background-color:#75A6CC;height:30px'>
+          <td><input type='radio' name='pRank' value='national' checked></td>
+          <td>Nationwide</td>
+        </tr>
+        <tr style='background-color:#B9D9E9;height:30px'>
+          <td><input type='radio' name='pRank' value='state'></td>
+          <td>Within State</td>
+        </tr>
+      </table>
+    </div>
+    <div id='CountyView' style='min-width:calc(50% - 2px);border:lightgray;border-style:solid;border-width:0.5px;float:left;'>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <colgroup>
+          <col span="1" style="width: 10%;">
+          <col span="1" style="width: 90%;">
+        </colgroup>
+        <tr style='background-color:#034B77;color:white;height:30px'>
+          <th colspan='2' class="CellWithComment" ><b>National View</b>
+            <span class='CellComment' style='left:-100px; min-width:160px'>
+              Select to display counties or states when viewing the national maps.​
+              <br>
+            </span>
+          </th>
+        </tr>
+        <tr style='background-color:#75A6CC;height:30px'>
+          <td><input type='radio' name='pView' id='pViewCounty' value='county'></td>
+          <td>County</td>
+        </tr>
+        <tr style='background-color:#B9D9E9;height:30px'>
+          <td><input type='radio' name='pView'id='pViewState' value='state' checked></td>
+          <td>State</td>
+        </tr>
+      </table>
+    </div>
+    <div id='RuralUrbanFilter' style='min-width:calc(100% - 2px);float:left;border:lightgray;border-style:solid;border-width:0.5px'>
+      <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
+        <colgroup>
+          <col span="1" style="width: 10%;">
+          <col span="1" style="width: 90%;">
+        </colgroup>
+        <tr style='background-color:#034B77;color:white;height:30px'>
+          <th colspan='2' class="CellWithComment"><b>Rural/Urban Filter</b>
+            <span class='CellComment'>
+              Filter counties by Rural-Urban Continuum Codes (RUCC):<br>
+              <b>Metro</b>: Urban areas with significant population<br>
+              <b>Rural Adjacent</b>: Rural areas adjacent to metro<br>
+              <b>Rural Remote</b>: Rural areas not adjacent to metro<br>
+              <b>Frontier</b>: Completely rural or &lt;2,500 population
+            </span>
+          </th>
+        </tr>
+        <tr style='background-color:#75A6CC;height:30px'>
+          <td><input type='checkbox' name='ruralUrban' value='metro' checked></td>
+          <td>Metro (Urban)</td>
+        </tr>
+        <tr style='background-color:#B9D9E9;height:30px'>
+          <td><input type='checkbox' name='ruralUrban' value='nonmetro_adjacent' checked></td>
+          <td>Rural (Adjacent to Metro)</td>
+        </tr>
+        <tr style='background-color:#75A6CC;height:30px'>
+          <td><input type='checkbox' name='ruralUrban' value='nonmetro_nonadjacent' checked></td>
+          <td>Rural (Not Adjacent)</td>
+        </tr>
+        <tr style='background-color:#B9D9E9;height:30px'>
+          <td><input type='checkbox' name='ruralUrban' value='frontier'></td>
+          <td>Frontier (Remote Rural)</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <div class="divider">
+    <table cellspacing="0" cellpadding='0' style='min-width:1px;'>
+      <tr>
+        <td></td>
+      </tr>
+    </table>
+  </div>
+  <div id='content' align='center' style='float:left'>
+    <div id='cavnas' style='width:800px;height:610px;border:lightgray;border-style: solid; border-width:0.5px'>
+    </div>
+    <div id='legend' style='width:800px;height:116px;border:lightgray;border-style: solid; border-width:0.5px'>
+    </div>
+    <div id='ss_btn' style="top:5px;left:100%;position:absolute;margin:0 0 0 -90px;">
+      <button type="button" id='compare_btn' style="display:none;" class="non-selectable">Compare</button>
+      <button type="button" id='screenshot_btn' style="display:inline;" class="non-selectable">Screenshot</button>
+    </div>
+  </div>
+  <div id='slider_graph' style="width:541px; height:300px; border:lightgray;border-style: solid; border-width:0.5px;float:left;">
+    <label for="togBtn" style="position:absolute; left:455px; top:1009px; z-index: 3000; font-size:12px; user-select: none;">Trend</label>
+    <label class="switch" style="position:absolute; left:490px; top:1005px; z-index: 3000;">
+      <input type="checkbox" id="togBtn">
+      <div class="slider round"></div>
+    </label>    
+  </div>
+  <div class="divider">
+    <table cellspacing="0" cellpadding='0' style='min-width:1px;'>
+      <tr>
+        <td></td>
+      </tr>
+    </table>
+  </div> 
+  <div id='report_card' style="width:541px; height:300px; border:lightgray;border-style: solid; border-width:0.5px; float:right; user-select:none; display:flex; flex-direction: column;">
+  </div>
+</div>
+<div id='comparison_holder' style='float:left;width:calc(100% - 14px);height:730px;display:none;border:lightgray;border-style: solid; border-width:0.5px;'>
+  <div id='comparison_view'>
+  </div>
+  <div id='ss_btn' style="top:calc(50% + 5px);left:100%;position:absolute;margin:0 0 0 -65px;">
+    <!--
+    Button for Screenshot
+    -->
+    <button type="button" id='close_compare_btn' class="non-selectable">Close</button>
+  </div>
+</div>
+</div>
+
+<!--
+  Additional JavaScripts
+-->
+<script src='./files/theme/medicaid_js/html2canvas.min.js'></script>
+<script src='./files/theme/medicaid_js/canvas-toBlob.js'></script>
+<script src='./files/theme/medicaid_js/FileSaver.js'></script>
+<script src='./files/theme/medicaid_js/trend_analyzer.js'></script>
+<script src='./files/theme/medicaid_js/rural_urban_utils.js'></script>
+<script src='./files/theme/medicaid_js/medicaid_map_v1.7.js'> </script>
+</body>
