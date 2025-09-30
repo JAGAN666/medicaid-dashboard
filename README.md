@@ -5,7 +5,7 @@ An interactive visualization tool for analyzing Medicaid healthcare provider acc
 ## 🌟 Features
 
 - **Geographic Visualization**: Interactive choropleth maps with state and county-level data
-- **Time Series Analysis**: Track provider trends from 2016-2021
+- **Time Series Analysis**: Track provider trends from 2016-2020
 - **Rural/Urban Analysis**: Filter and compare provider access by geographic classification
 - **Provider Specialties**: Analyze 6 different provider types:
   - Family Medicine
@@ -84,7 +84,7 @@ Visit: http://localhost:8000
 ## 📖 User Guide
 
 ### Basic Navigation
-1. **Select Year**: Use dropdown to choose 2016-2021
+1. **Select Year**: Use dropdown to choose 2016-2020
 2. **Choose Specialties**: Check/uncheck provider types
 3. **Filter Volume**: Select minimum beneficiary volumes
 4. **Rural/Urban Filter**: Toggle geographic categories
@@ -102,12 +102,6 @@ Visit: http://localhost:8000
 - **Gray**: Data quality issues
 
 ## 🔧 Configuration
-
-### Adding 2021 Data
-1. Update CSV files in `Data Preprocessing/`
-2. Run Stata preprocessing scripts
-3. Copy output files to `files/theme/medicaid_src/`
-4. Refresh dashboard
 
 ### Updating RUCC Classifications
 1. Download latest RUCC data from USDA ERS
@@ -162,15 +156,15 @@ For questions or issues:
 ## 🔄 Version History
 
 ### v1.8 (2024)
-- Added 2021 year support
-- Implemented rural/urban filtering (RUCC codes)
+- Implemented rural/urban filtering with official USDA RUCC 2023 codes
 - Enhanced trend visualization with linear regression
 - Added statistical analysis tools
 - Created disparity calculation framework
+- High-contrast color scheme for accessibility
 
 ### v1.7 (2024)
 - Original release
-- 2016-2020 data coverage
+- 2016-2020 data coverage (CMS Medicaid claims)
 - Basic state and county visualization
 - Provider specialty filtering
 
