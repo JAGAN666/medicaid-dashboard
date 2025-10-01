@@ -1,15 +1,40 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="shortcut icon" href="#" />
-  <link href='https://fonts.googleapis.com/css?family=Maven Pro' rel='stylesheet'>
-  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Medicaid Provider Access Dashboard | Interactive Rural/Urban Analysis</title>
+  <meta name="description" content="Interactive visualization of Medicaid provider access across the United States with rural/urban classification analysis (2016-2020 data)">
+  <meta name="keywords" content="medicaid, healthcare, provider access, rural health, urban health, data visualization">
+  <link rel="shortcut icon" href="#" />
+  <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap' rel='stylesheet'>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="modern-styles.css">
 </head>
 <style>
-html * {
-  line-height: 1.15;
-  font-family: "Maven Pro", sans-serif;
+/* Modern CSS Reset & Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.6;
+  color: #1e293b;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 .hidden{
   display: none;
@@ -222,21 +247,46 @@ input:checked + .slider:before {
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.9.1/d3-tip.min.js"></script>
 
+<!-- Modern Header -->
+<header class="dashboard-header">
+  <div class="container">
+    <div>
+      <h1 class="dashboard-title">
+        <i class="fas fa-hospital-user"></i>
+        Medicaid Provider Access Dashboard
+      </h1>
+      <p class="dashboard-subtitle">Interactive Rural/Urban Analysis • 2016-2020 Data</p>
+    </div>
+  </div>
+</header>
 
-<div id='page_body'>
-<div id='current_view' style="min-width:min(1100px, 50%);display: flex; flex-wrap:wrap;">
-  <div id="sidepanel" style="border:lightgray;border-style: solid; border-width:0.5px">
+<!-- Mobile Menu Toggle -->
+<button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+  <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="dashboard-container">
+<div id='page_body' class="dashboard-grid">
+  <aside id="sidepanel" class="sidebar-card">
     <!--
     Specialty Selector
     -->
-    <div id='state_selector_div' style='min-width:calc(100% - 2px);max-width:280px; float:left; border: lightgray; border-style:solid;border-width:0.5px'>
+    <div id='state_selector_div' class="control-section">
+      <div class="control-header">
+        <i class="fas fa-map-marked-alt"></i>
+        <span>Location & Year</span>
+      </div>
+      <div class="control-body">
       <table cellspacing='0' cellpadding='0' width='100%'>
         <colgroup>
           <col span="1" style="width: 70%;">
           <col span="1" style="width: 30%;">
         </colgroup>
         <th>
-          <tr style='background-color:#034B77;color:white;height:30px;text-align:center;font-weight:700;'>
+          <tr style='background-color:#B9D9E9;height:30px;text-align:center;font-weight:600;'>
               <td id='state_selector'>State</td>
               <td colspan="1">Year</td>
           </tr>
@@ -309,15 +359,21 @@ input:checked + .slider:before {
           </td>
         </tr>
       </table>
-    </div>
-    <div id='measure_selector' style='min-width:calc(100% - 2px); border:lightgray;border-style:solid;border-width:0.5px;float:left;'>
+      </div><!-- close control-body -->
+    </div><!-- close state_selector_div -->
+    <div id='measure_selector' class="control-section">
+      <div class="control-header">
+        <i class="fas fa-chart-bar"></i>
+        <span>Select Measure</span>
+      </div>
+      <div class="control-body">
       <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
         <colgroup>
           <col span="1" style="width: 10%;">
           <col span="1" style="width: 90%;">
         </colgroup>
         <thead>
-          <tr style='background-color:#034B77;color:white;height:30px'>
+          <tr style='background-color:#B9D9E9;height:30px;display:none;'>
               <td colspan="2" class="CellWithComment"><b>Select Measure</b>
                 <span class='CellComment'>
                   Select measure:​<br>
@@ -337,8 +393,9 @@ input:checked + .slider:before {
           </td>
         </tr>
       </table>
-    </div>
-    <div id='specialty_selector' style='min-width:calc(100% - 2px);max-width:280px; float:left; border: lightgray; border-style:solid;border-width:0.5px'>
+      </div><!-- close control-body -->
+    </div><!-- close measure_selector -->
+    <div id='specialty_selector' class="control-section">
       <table cellspacing="0" style='text-align:left;width:100%;border:none;' cellpadding="3">
         <colgroup>
           <col span="1" style="width: 20px;">
@@ -599,24 +656,20 @@ input:checked + .slider:before {
         </tr>
       </table>
     </div>
-  </div>
-  <div class="divider">
-    <table cellspacing="0" cellpadding='0' style='min-width:1px;'>
-      <tr>
-        <td></td>
-      </tr>
-    </table>
-  </div>
-  <div id='content' align='center' style='float:left'>
-    <div id='cavnas' style='width:800px;height:610px;border:lightgray;border-style: solid; border-width:0.5px'>
-    </div>
-    <div id='legend' style='width:800px;height:116px;border:lightgray;border-style: solid; border-width:0.5px'>
+  </aside>
+
+  <main class="map-card">
+    <div class="map-container">
+      <div id='cavnas'>
+      </div>
+      <div id='legend'>
+      </div>
     </div>
     <div id='ss_btn' style="top:5px;left:100%;position:absolute;margin:0 0 0 -90px;">
       <button type="button" id='compare_btn' style="display:none;" class="non-selectable">Compare</button>
       <button type="button" id='screenshot_btn' style="display:inline;" class="non-selectable">Screenshot</button>
     </div>
-  </div>
+  </main>
   <div id='slider_graph' style="width:541px; height:300px; border:lightgray;border-style: solid; border-width:0.5px;float:left;">
     <label for="togBtn" style="position:absolute; left:455px; top:1009px; z-index: 3000; font-size:12px; user-select: none;">Trend</label>
     <label class="switch" style="position:absolute; left:490px; top:1005px; z-index: 3000;">
@@ -644,7 +697,8 @@ input:checked + .slider:before {
     <button type="button" id='close_compare_btn' class="non-selectable">Close</button>
   </div>
 </div>
-</div>
+</div><!-- close dashboard-grid -->
+</div><!-- close dashboard-container -->
 
 <!--
   Additional JavaScripts
@@ -655,4 +709,51 @@ input:checked + .slider:before {
 <script src='./files/theme/medicaid_js/trend_analyzer.js'></script>
 <script src='./files/theme/medicaid_js/rural_urban_utils.js'></script>
 <script src='./files/theme/medicaid_js/medicaid_map_v1.7.js'> </script>
+
+<!-- Mobile Menu JavaScript -->
+<script>
+(function() {
+  const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+  const sidebar = document.getElementById('sidepanel');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+  if (mobileMenuToggle && sidebar && sidebarOverlay) {
+    // Toggle sidebar on mobile
+    mobileMenuToggle.addEventListener('click', function() {
+      sidebar.classList.toggle('mobile-open');
+      sidebarOverlay.classList.toggle('active');
+
+      // Change icon
+      const icon = this.querySelector('i');
+      if (sidebar.classList.contains('mobile-open')) {
+        icon.classList.remove('fa-bars');
+        icon.classList.add('fa-times');
+      } else {
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-bars');
+      }
+    });
+
+    // Close sidebar when clicking overlay
+    sidebarOverlay.addEventListener('click', function() {
+      sidebar.classList.remove('mobile-open');
+      sidebarOverlay.classList.remove('active');
+      const icon = mobileMenuToggle.querySelector('i');
+      icon.classList.remove('fa-times');
+      icon.classList.add('fa-bars');
+    });
+
+    // Close sidebar on window resize to desktop size
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 768) {
+        sidebar.classList.remove('mobile-open');
+        sidebarOverlay.classList.remove('active');
+        const icon = mobileMenuToggle.querySelector('i');
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-bars');
+      }
+    });
+  }
+})();
+</script>
 </body>
